@@ -1,12 +1,15 @@
 {
-  "name": "speech-scheduler",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "speech-gen-monorepo",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+    "build": "npm run build --workspaces",
+    "dev": "concurrently -k \"npm run dev --workspace @app/backend\" \"npm run dev --workspace @app/web\"",
+    "lint": "npm run lint --workspaces",
+    "format": "npm run format --workspaces"
+  }
 }
