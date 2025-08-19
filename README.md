@@ -1,152 +1,278 @@
-# Piper Announce
+# Piper Announce 🎙️
 
-AI-powered announcement generator using Piper TTS and OpenAI GPT models.
+AI-powered announcement generator that combines OpenAI's GPT models with Piper TTS to create professional-quality audio announcements in multiple languages and styles.
 
-## Prerequisites
+## Features ✨
+
+- **AI-Powered Text Generation**: Uses OpenAI GPT-4o-mini to create polished announcements from your input
+- **Multiple Languages**: Support for English, Spanish, Catalan, and Farsi
+- **Voice Options**: Male and female voices for each supported language
+- **Style Presets**: Friendly, formal, urgent, or custom styles
+- **Professional Audio Processing**: Automatic mastering with loudness normalization and filtering
+- **Multiple Export Formats**: WAV, MP3, M4A, and Opus support
+- **Safe Content**: Automatically transforms inappropriate requests into safe, inclusive announcements
+
+## Quick Start 🚀
+
+### Prerequisites
 
 - Node.js 16+
-- Piper TTS binary installed and in PATH
+- [Piper TTS](https://github.com/rhasspy/piper) installed and accessible in PATH
 - FFmpeg for audio processing
 - OpenAI API key
 
-## Installation
+### Installation
 
-### Global Installation
-
-```bash
-npm install -g piper-announce
-```
-
-### Local Installation
+1. **Clone the repository**:
 
 ```bash
-npm install piper-announce
+git clone https://github.com/zahraajamali/speech-scheduler.git
+cd speech-scheduler
 ```
 
-## Setup
+2. **Install dependencies**:
 
-1. Install Piper TTS:
+```bash
+npm install
+```
 
-   ```bash
-   # On macOS with Homebrew
-   brew install piper-tts
+3. **Set up environment variables**:
+   Create a `.env` file in the project root:
 
-   # Or download from: https://github.com/rhasspy/piper
-   ```
+```bash
+OPENAI_API_KEY=your_openai_api_key_here
+PIPER_BIN=piper  # Optional: path to piper binary
+VOICES_DIR=/path/to/voices  # Optional: custom voices directory
+```
 
-2. Download voice models and place them in a `voices/` directory
+4. **Download voice models**:
+   You'll need to download Piper voice models. The script will look for voices in these locations:
 
-3. Set environment variables:
-   ```bash
-   export OPENAI_API_KEY="your-openai-api-key"
-   export PIPER_BIN="piper"  # or path to piper binary
-   export VOICES_DIR="./voices"  # path to your voice files
-   ```
+- `$VOICES_DIR` (if set)
+- `./voices/`
+- `../voices/`
+- `~/.piper/voices/`
 
-## Usage
+Expected voice files:
 
-### Command Line
+```
+voices/
+├── en_GB-jenny_dioco-medium.onnx    # English female
+├── en_GB-alan-low.onnx              # English male
+├── es_ES-mls_10246-low.onnx         # Spanish female
+├── es_ES-carlfm-x_low.onnx          # Spanish male
+├── ca_ES-upc_ona-x_low.onnx         # Catalan female
+└── ca_ES-upc_pau-x_low.onnx         # Catalan male
+```
+
+Download voices from the [Piper voices repository](https://github.com/rhasspy/piper/releases).
+
+## Usage 📝
+
+### CLI Usage
 
 Create an `input.json` file:
 
 ```json
 {
-  "text": "Welcome to our store! We have special offers today.",
+  "text": "Welcome to our store! We have a special promotion today.",
   "lang": "en",
   "gender": "female",
   "style": "friendly",
-  "custom_style": null,
   "master": true,
   "export_formats": ["mp3", "m4a"]
 }
 ```
 
-Run:
+Run the generator:
 
 ```bash
-make-announcement
+npm start
 ```
 
 ### Programmatic Usage
 
 ```javascript
-import { makeAnnouncement } from "piper-announce";
+import { makeAnnouncement } from "./src/index.js";
 
 const result = await makeAnnouncement(
-  "Welcome to our store!",
-  "en",
-  "female",
-  "friendly",
+  "Please attention, the store will close in 10 minutes",
+  "en", // language
+  "female", // gender
+  "urgent", // style
   {
-    master: true,
-    exportFormats: ["mp3"],
+    master: true, // apply audio mastering
+    exportFormats: ["mp3", "opus"], // additional formats
   }
 );
 
-console.log(result.text); // Generated announcement text
-console.log(result.audio); // Path to audio file
-console.log(result.extras); // Additional format files
+console.log(`Generated: "${result.text}"`);
+console.log(`Audio file: ${result.audio}`);
+console.log(`Additional formats:`, result.extras);
 ```
 
-## Supported Languages & Voices
+## Configuration Options ⚙️
 
-- **English (en)**: female, male
-- **Spanish (es)**: female, male
-- **Catalan (ca)**: female, male
+### Languages
 
-## Styles
+- `en` - English (UK voices)
+- `es` - Spanish (Spain)
+- `ca` - Catalan
+- `fa` - Farsi (requires appropriate voice models)
 
-- `friendly`: Warm, welcoming, upbeat
-- `formal`: Polite, concise, professional
-- `urgent`: Direct, time-sensitive
-- `custom`: Use custom style description
+### Genders
 
-## API Reference
+- `female` - Female voice
+- `male` - Male voice
 
-### makeAnnouncement(text, language, gender, style, options)
+### Styles
 
-- **text** (string): The text to convert to announcement
-- **language** (string): Language code ('en', 'es', 'ca')
-- **gender** (string): Voice gender ('female', 'male')
-- **style** (string): Announcement style ('friendly', 'formal', 'urgent', 'custom')
-- **options** (object): Optional settings
-  - `customStyle` (string): Custom style description when style is 'custom'
-  - `master` (boolean): Apply audio mastering (default: true)
-  - `exportFormats` (array): Additional formats to export ['mp3', 'm4a', 'opus']
+- `friendly` - Warm, welcoming, upbeat tone
+- `formal` - Polite, concise, professional tone
+- `urgent` - Direct, time-sensitive with clear call-to-action
+- `custom` - Provide your own style description
 
-Returns an object with:
+### Audio Processing
 
-- `text`: The generated announcement text
-- `audio`: Path to the main audio file
-- `extras`: Object with paths to additional format files
+The tool automatically applies professional audio mastering:
 
-## Environment Variables
+- Loudness normalization (-16 LUFS)
+- High-pass filter (80Hz)
+- Low-pass filter (12kHz)
+- Silence removal
+- Format conversion to 48kHz 16-bit
 
-- `OPENAI_API_KEY`: Your OpenAI API key (required)
-- `PIPER_BIN`: Path to Piper binary (default: "piper")
-- `VOICES_DIR`: Directory containing voice model files
+### Export Formats
 
-## Voice Models
+- `wav` - Uncompressed audio (default)
+- `mp3` - MP3 compression (quality 2)
+- `m4a` - AAC compression (192kbps)
+- `opus` - Opus compression (96kbps)
 
-You'll need to download voice model files (.onnx) for each language and gender:
+## Input.json Schema 📋
 
-### English
+```json
+{
+  "text": "string", // Your announcement text
+  "lang": "en|es|ca|fa", // Language code
+  "gender": "male|female", // Voice gender
+  "style": "friendly|formal|urgent|custom", // Style preset
+  "custom_style": "string", // Custom style description (when style="custom")
+  "master": true, // Apply audio mastering (default: true)
+  "export_formats": ["mp3"] // Additional export formats
+}
+```
 
-- Female: `en_GB-jenny_dioco-medium.onnx`
-- Male: `en_GB-alan-low.onnx`
+## Examples 🎯
 
-### Spanish
+### Friendly Store Announcement
 
-- Female: `es_ES-mls_10246-low.onnx`
-- Male: `es_ES-carlfm-x_low.onnx`
+```json
+{
+  "text": "We have fresh pastries available at the bakery counter",
+  "lang": "en",
+  "gender": "female",
+  "style": "friendly"
+}
+```
 
-### Catalan
+Generated: _"We have delicious fresh pastries available at our bakery counter. Come and try them while they're still warm!"_
 
-- Female: `ca_ES-upc_ona-x_low.onnx`
-- Male: `ca_ES-upc_pau-x_low.onnx`
+### Urgent Safety Notice
 
-Download from: https://github.com/rhasspy/piper/releases
+```json
+{
+  "text": "Fire alarm test will begin",
+  "lang": "en",
+  "gender": "male",
+  "style": "urgent"
+}
+```
 
-## License
+Generated: _"Attention: Fire alarm testing will begin in 2 minutes. Please remain calm and continue with your activities!"_
 
-MIT
+### Multilingual Support
+
+```json
+{
+  "text": "La tienda cerrará en 30 minutos",
+  "lang": "es",
+  "gender": "female",
+  "style": "formal"
+}
+```
+
+## Project Structure 📁
+
+```
+speech-scheduler/
+├── src/
+│   └── index.js          # Main announcement generator
+├── bin/
+│   └── make-announcement # CLI executable
+├── examples/
+│   └── basic-usage.js    # Usage examples
+├── voices/               # Voice model directory
+├── input.json           # Input configuration
+├── package.json
+├── .env                 # Environment variables
+└── README.md
+```
+
+## Troubleshooting 🔧
+
+### Common Issues
+
+**"Missing voice for language"**
+
+- Download the required voice models from Piper releases
+- Check that voice files are in the correct directory
+- Verify file permissions
+
+**"Piper error"**
+
+- Ensure Piper is installed and in PATH
+- Check that voice model files aren't corrupted
+- Verify text encoding (UTF-8)
+
+**"ffmpeg mastering error"**
+
+- Install FFmpeg and ensure it's in PATH
+- Check write permissions in output directory
+
+**OpenAI API errors**
+
+- Verify your API key is correct
+- Check your OpenAI account has sufficient credits
+- Ensure internet connectivity
+
+## Contributing 🤝
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature-name`
+3. Make your changes and add tests
+4. Commit your changes: `git commit -am 'Add feature'`
+5. Push to the branch: `git push origin feature-name`
+6. Submit a pull request
+
+## License 📄
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments 🙏
+
+- [Piper TTS](https://github.com/rhasspy/piper) - High-quality neural text-to-speech
+- [OpenAI](https://openai.com/) - AI text generation
+- Voice models from the Piper community
+
+## Support 💬
+
+If you encounter issues or have questions:
+
+1. Check the [Issues](https://github.com/zahraajamali/speech-scheduler/issues) page
+2. Create a new issue with detailed information
+3. Include your configuration and error messages
+
+---
+
+Made with ❤️ for creating better audio announcements
