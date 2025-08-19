@@ -118,7 +118,6 @@ console.log(`Additional formats:`, result.extras);
 - `en` - English (UK voices)
 - `es` - Spanish (Spain)
 - `ca` - Catalan
-- `fa` - Farsi (requires appropriate voice models)
 
 ### Genders
 
@@ -151,10 +150,10 @@ The tool automatically applies professional audio mastering:
 
 ## Input.json Schema 📋
 
-```json
+```jsonc
 {
   "text": "string", // Your announcement text
-  "lang": "en|es|ca|fa", // Language code
+  "lang": "en|es|ca", // Language code
   "gender": "male|female", // Voice gender
   "style": "friendly|formal|urgent|custom", // Style preset
   "custom_style": "string", // Custom style description (when style="custom")
