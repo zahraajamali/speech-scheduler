@@ -44,7 +44,6 @@
   "files": [
     "src/",
     "bin/",
-    "voices/",
     "examples/",
     "README.md",
     "LICENSE"
