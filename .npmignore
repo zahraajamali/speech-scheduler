@@ -1,0 +1,40 @@
+# Development files
+.git/
+.gitignore
+*.log
+.env*
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Voice models (too large for npm)
+voices/
+*.onnx
+*.json
+
+# Generated audio files (examples/temp files)
+*.wav
+*.mp3
+*.m4a
+*.opus
+raw_*
+announcement_*
+
+# Test and development files
+test/
+tests/
+*.test.js
+coverage/
+
+# Documentation that's not needed in package
+docs/
+.github/
+
+# Local configuration
+input.json
+config.json
