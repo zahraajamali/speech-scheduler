@@ -8,7 +8,8 @@ AI-powered announcement generator that combines OpenAI's GPT models with Piper T
 ## Features ✨
 
 - **AI-Powered Text Generation**: Uses OpenAI GPT-4o-mini to create polished announcements from your input
-- **Multiple Languages**: Support for English, Spanish, Catalan, and Farsi
+- **Flexible Two-Step Process**: Generate text first, then convert to audio - or do both separately
+- **Multiple Languages**: Support for English, Spanish, and Catalan
 - **Voice Options**: Male and female voices for each supported language
 - **Style Presets**: Friendly, formal, urgent, or custom styles
 - **Professional Audio Processing**: Automatic mastering with loudness normalization and filtering
@@ -17,9 +18,9 @@ AI-powered announcement generator that combines OpenAI's GPT models with Piper T
 
 ## Installation 📦
 
-```bash
-npm i piper-announce
-```
+\`\`\`bash
+npm install piper-announce
+\`\`\`
 
 ### Prerequisites
 
@@ -43,22 +44,48 @@ VOICES_DIR=/path/to/voices
 ### Basic Usage
 
 ```javascript
-import { makeAnnouncement } from "piper-announce";
+import { generateAnnouncementText, makeAnnouncement } from "piper-announce";
 
-const result = await makeAnnouncement(
+// Step 1: Generate polished announcement text
+const announcementText = await generateAnnouncementText(
   "Welcome to our store! We have a special promotion today.",
-  "en", // language
-  "female", // gender
-  "friendly", // style
   {
-    master: true, // apply audio mastering
-    exportFormats: ["mp3", "m4a"], // additional formats
+    language: "en",
+    style: "friendly",
   }
 );
 
-console.log(`Generated text: "${result.text}"`);
+console.log(`Generated text: "${announcementText}"`);
+// Output: "Welcome to our store! We have an exciting special promotion available today."
+
+// Step 2: Convert text to audio
+const result = makeAnnouncement(announcementText, {
+  language: "en",
+  gender: "female",
+  style: "friendly",
+  master: true,
+  exportFormats: ["mp3", "m4a"],
+});
+
 console.log(`Audio file: ${result.audio}`);
 console.log(`Additional formats:`, result.extras);
+```
+
+### One-Step Usage (Generate Text + Audio)
+
+```javascript
+// You can also combine both steps
+const userInput = "Store closing soon";
+const text = await generateAnnouncementText(userInput, {
+  language: "en",
+  style: "urgent",
+});
+
+const audio = makeAnnouncement(text, {
+  language: "en",
+  gender: "male",
+  style: "urgent",
+});
 ```
 
 ## Configuration Options ⚙️
@@ -94,83 +121,127 @@ console.log(`Additional formats:`, result.extras);
 
 ## API Reference 📚
 
-### `makeAnnouncement(text, lang, gender, style, options)`
+### `generateAnnouncementText(userText, options)`
 
-Generates an AI-enhanced audio announcement.
+Generates polished announcement text using AI, without creating audio.
 
 #### Parameters
 
-- `text` (string): Your announcement text
-- `lang` (string): Language code (`en`, `es`, `ca`, `fa`)
-- `gender` (string): Voice gender (`male`, `female`)
-- `style` (string): Style preset (`friendly`, `formal`, `urgent`, `custom`)
-- `options` (object, optional):
-  - `master` (boolean): Apply audio mastering (default: `true`)
-  - `exportFormats` (array): Additional export formats
-  - `customStyle` (string): Custom style description (when style is `custom`)
+- `userText` (string): Your raw announcement text or request
+- `options` (object):
+  - `language` (string): Language code (`en`, `es`, `ca`)
+  - `style` (string): Style preset (`friendly`, `formal`, `urgent`, `custom`)
+  - `customStyle` (string, optional): Custom style description (when style is `custom`)
 
 #### Returns
 
-Promise that resolves to:
+Promise that resolves to a string containing the polished announcement text.
+
+```javascript
+const text = await generateAnnouncementText("We got new stuff in the bakery", {
+  language: "en",
+  style: "friendly",
+});
+// Returns: "We have delicious fresh items available at our bakery counter!"
+```
+
+### `makeAnnouncement(text, options)`
+
+Converts text to audio using Piper TTS (does not use OpenAI).
+
+#### Parameters
+
+- `text` (string): The announcement text to convert to audio
+- `options` (object):
+  - `language` (string): Language code (`en`, `es`, `ca`)
+  - `gender` (string): Voice gender (`male`, `female`)
+  - `style` (string, optional): Style preset for audio processing (`friendly`, `formal`, `urgent`) - default: `formal`
+  - `master` (boolean, optional): Apply audio mastering - default: `true`
+  - `exportFormats` (array, optional): Additional export formats (`mp3`, `m4a`, `opus`)
+
+#### Returns
+
+Object containing:
 
 ```javascript
 {
-text: "Enhanced announcement text",
-audio: "path/to/generated/audio.wav",
-extras: ["path/to/audio.mp3", "path/to/audio.m4a"]
+  text: "Final processed announcement text",
+  audio: "path/to/generated/audio.wav",
+  extras: { mp3: "path/to/audio.mp3", m4a: "path/to/audio.m4a" }
 }
 ```
 
 ## Examples 🎯
 
-### Friendly Store Announcement
+### Two-Step Process (Recommended)
 
 ```javascript
-const result = await makeAnnouncement(
+// Step 1: Generate and review text
+const text = await generateAnnouncementText(
   "We have fresh pastries available at the bakery counter",
-  "en",
-  "female",
-  "friendly"
+  { language: "en", style: "friendly" }
 );
-// Generated: "We have delicious fresh pastries available at our bakery counter. Come and try them while they're still warm!"
+
+console.log("Generated:", text);
+// You can edit the text here if needed
+
+// Step 2: Convert to audio
+const result = makeAnnouncement(text, {
+  language: "en",
+  gender: "female",
+  style: "friendly",
+});
 ```
 
 ### Urgent Safety Notice
 
 ```javascript
-const result = await makeAnnouncement(
+const urgentText = await generateAnnouncementText(
   "Fire alarm test will begin",
-  "en",
-  "male",
-  "urgent"
+  { language: "en", style: "urgent" }
 );
-// Generated: "Attention: Fire alarm testing will begin in 2 minutes. Please remain calm and continue with your activities!"
+
+const audio = makeAnnouncement(urgentText, {
+  language: "en",
+  gender: "male",
+  style: "urgent",
+});
 ```
 
 ### Multilingual Support
 
 ```javascript
-const result = await makeAnnouncement(
+const spanishText = await generateAnnouncementText(
   "La tienda cerrará en 30 minutos",
-  "es",
-  "female",
-  "formal"
+  { language: "es", style: "formal" }
 );
+
+const audio = makeAnnouncement(spanishText, {
+  language: "es",
+  gender: "female",
+  style: "formal",
+});
 ```
 
-### Custom Style
+### Custom Style with Text Editing
 
 ```javascript
-const result = await makeAnnouncement(
-  "New products have arrived",
-  "en",
-  "female",
-  "custom",
-  {
-    customStyle:
-      "Excited and energetic, like a radio DJ announcing something amazing",
-  }
-);
+// Generate with custom style
+const text = await generateAnnouncementText("New products have arrived", {
+  language: "en",
+  style: "custom",
+  customStyle: "Excited and energetic, like a radio DJ",
+});
+
+// Edit the text if needed
+const editedText = text + " Don't miss out!";
+
+// Convert to audio
+const audio = makeAnnouncement(editedText, {
+  language: "en",
+  gender: "female",
+  style: "friendly",
+});
 ```
 
 ## Voice Model Setup 🎤
@@ -181,12 +252,12 @@ Expected voice file structure:
 
 ```
 voices/
-├── en_GB-jenny_dioco-medium.onnx # English female
-├── en_GB-alan-low.onnx # English male
-├── es_ES-mls_10246-low.onnx # Spanish female
-├── es_ES-carlfm-x_low.onnx # Spanish male
-├── ca_ES-upc_ona-x_low.onnx # Catalan female
-└── ca_ES-upc_pau-x_low.onnx # Catalan male
+├── en_GB-jenny_dioco-medium.onnx    # English female
+├── en_GB-alan-low.onnx              # English male
+├── es_ES-mls_10246-low.onnx         # Spanish female
+├── es_ES-carlfm-x_low.onnx          # Spanish male
+├── ca_ES-upc_ona-x_low.onnx         # Catalan female
+└── ca_ES-upc_pau-x_low.onnx         # Catalan male
 ```
 
 The library searches for voices in:

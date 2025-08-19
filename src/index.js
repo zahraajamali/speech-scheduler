@@ -23,11 +23,8 @@ const POSSIBLE_VOICE_DIRS = [
 
 function findVoicesDir() {
   for (const dir of POSSIBLE_VOICE_DIRS) {
-    if (fs.existsSync(dir)) {
-      return dir;
-    }
+    if (fs.existsSync(dir)) return dir;
   }
-
   const defaultDir = path.join(process.cwd(), "voices");
   fs.mkdirSync(defaultDir, { recursive: true });
   return defaultDir;
@@ -138,12 +135,8 @@ function synthesizeWithPiper({
     "--sentence_silence",
     String(sentence_silence),
   ];
-  if (speaker != null) {
-    args.push("--speaker", String(speaker));
-  }
-  if (extra_args?.length) {
-    args.push(...extra_args.map(String));
-  }
+  if (speaker != null) args.push("--speaker", String(speaker));
+  if (extra_args?.length) args.push(...extra_args.map(String));
   args.push("--", text);
 
   const proc = spawnSync(PIPER_BIN, args, { encoding: "utf-8" });
@@ -233,13 +226,14 @@ function stylePresets(style = "") {
   };
 }
 
-// ---------- PIPELINE (exported) ----------
-export async function makeAnnouncement(
+// ---------- NEW EXPORTS ----------
+
+/**
+ * Part 1: return the announcement text only.
+ */
+export async function generateAnnouncementText(
   userText,
-  language,
-  gender,
-  style,
-  { customStyle = null, master = true, exportFormats = null } = {}
+  { language, style, customStyle = null } = {}
 ) {
   const draft = await rewriteToAnnouncement(
     userText,
@@ -247,7 +241,24 @@ export async function makeAnnouncement(
     customStyle,
     language
   );
-  const finalText = postprocessStyle(draft, style);
+  return postprocessStyle(draft, style);
+}
+
+/**
+ * Part 2: take (possibly edited) text and make audio.
+ * - DOES NOT call OpenAI.
+ */
+export function makeAnnouncement(
+  text,
+  {
+    language,
+    gender,
+    style = "formal",
+    master = true,
+    exportFormats = null,
+  } = {}
+) {
+  const finalText = postprocessStyle(text, style);
 
   const ts = new Date()
     .toISOString()
@@ -269,7 +280,6 @@ export async function makeAnnouncement(
   let mainAudio = rawFile;
   if (master) {
     masterWav(rawFile, outFile);
-    // Better cleanup of temporary raw file
     try {
       if (fs.existsSync(rawFile)) {
         fs.unlinkSync(rawFile);
