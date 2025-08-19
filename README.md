@@ -17,9 +17,9 @@ AI-powered announcement generator that combines OpenAI's GPT models with Piper T
 
 ## Installation 📦
 
-\`\`\`bash
+```bash
 npm i piper-announce
-\`\`\`
+```
 
 ### Prerequisites
 
@@ -34,32 +34,32 @@ npm i piper-announce
 
 Create a `.env` file in your project root:
 
-\`\`\`env
+```env
 OPENAI_API_KEY=your_openai_api_key_here
 PIPER_BIN=piper # Optional: path to piper binary
 VOICES_DIR=/path/to/voices # Optional: custom voices directory
-\`\`\`
+```
 
 ### Basic Usage
 
-\`\`\`javascript
-import { makeAnnouncement } from 'piper-announce';
+```javascript
+import { makeAnnouncement } from "piper-announce";
 
 const result = await makeAnnouncement(
-"Welcome to our store! We have a special promotion today.",
-"en", // language
-"female", // gender
-"friendly", // style
-{
-master: true, // apply audio mastering
-exportFormats: ["mp3", "m4a"], // additional formats
-}
+  "Welcome to our store! We have a special promotion today.",
+  "en", // language
+  "female", // gender
+  "friendly", // style
+  {
+    master: true, // apply audio mastering
+    exportFormats: ["mp3", "m4a"], // additional formats
+  }
 );
 
 console.log(`Generated text: "${result.text}"`);
 console.log(`Audio file: ${result.audio}`);
 console.log(`Additional formats:`, result.extras);
-\`\`\`
+```
 
 ## Configuration Options ⚙️
 
@@ -113,64 +113,65 @@ Generates an AI-enhanced audio announcement.
 
 Promise that resolves to:
 
-\`\`\`javascript
+```javascript
 {
 text: "Enhanced announcement text",
 audio: "path/to/generated/audio.wav",
 extras: ["path/to/audio.mp3", "path/to/audio.m4a"]
 }
-\`\`\`
+```
 
 ## Examples 🎯
 
 ### Friendly Store Announcement
 
-\`\`\`javascript
+```javascript
 const result = await makeAnnouncement(
-"We have fresh pastries available at the bakery counter",
-"en",
-"female",
-"friendly"
+  "We have fresh pastries available at the bakery counter",
+  "en",
+  "female",
+  "friendly"
 );
 // Generated: "We have delicious fresh pastries available at our bakery counter. Come and try them while they're still warm!"
-\`\`\`
+```
 
 ### Urgent Safety Notice
 
-\`\`\`javascript
+```javascript
 const result = await makeAnnouncement(
-"Fire alarm test will begin",
-"en",
-"male",
-"urgent"
+  "Fire alarm test will begin",
+  "en",
+  "male",
+  "urgent"
 );
 // Generated: "Attention: Fire alarm testing will begin in 2 minutes. Please remain calm and continue with your activities!"
-\`\`\`
+```
 
 ### Multilingual Support
 
-\`\`\`javascript
+```javascript
 const result = await makeAnnouncement(
-"La tienda cerrará en 30 minutos",
-"es",
-"female",
-"formal"
+  "La tienda cerrará en 30 minutos",
+  "es",
+  "female",
+  "formal"
 );
-\`\`\`
+```
 
 ### Custom Style
 
-\`\`\`javascript
+```javascript
 const result = await makeAnnouncement(
-"New products have arrived",
-"en",
-"female",
-"custom",
-{
-customStyle: "Excited and energetic, like a radio DJ announcing something amazing"
-}
+  "New products have arrived",
+  "en",
+  "female",
+  "custom",
+  {
+    customStyle:
+      "Excited and energetic, like a radio DJ announcing something amazing",
+  }
 );
-\`\`\`
+```
 
 ## Voice Model Setup 🎤
 
@@ -178,7 +179,7 @@ Download Piper voice models from the [official releases](https://github.com/rhas
 
 Expected voice file structure:
 
-\`\`\`
+```
 voices/
 ├── en_GB-jenny_dioco-medium.onnx # English female
 ├── en_GB-alan-low.onnx # English male
@@ -186,7 +187,7 @@ voices/
 ├── es_ES-carlfm-x_low.onnx # Spanish male
 ├── ca_ES-upc_ona-x_low.onnx # Catalan female
 └── ca_ES-upc_pau-x_low.onnx # Catalan male
-\`\`\`
+```
 
 The library searches for voices in:
 
@@ -236,9 +237,9 @@ The library automatically applies professional audio mastering:
 
 Set environment variable for verbose logging:
 
-\`\`\`bash
+```bash
 DEBUG=piper-announce npm start
-\`\`\`
+```
 
 ## Contributing 🤝
 
