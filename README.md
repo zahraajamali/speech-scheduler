@@ -19,7 +19,7 @@ AI-powered announcement generator that combines OpenAI's GPT models with Piper T
 ## Installation 📦
 
 ```bash
-npm install piper-announce
+npm i piper-announce
 ```
 
 ### Prerequisites
