@@ -36,8 +36,8 @@ Create a `.env` file in your project root:
 
 ```env
 OPENAI_API_KEY=your_openai_api_key_here
-PIPER_BIN=piper # Optional: path to piper binary
-VOICES_DIR=/path/to/voices # Optional: custom voices directory
+PIPER_BIN=/path/to/piper
+VOICES_DIR=/path/to/voices
 ```
 
 ### Basic Usage
