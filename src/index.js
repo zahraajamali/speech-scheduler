@@ -256,6 +256,7 @@ export function makeAnnouncement(
     style = "formal",
     master = true,
     exportFormats = null,
+    keepWav = false, // NEW
   } = {}
 ) {
   const finalText = postprocessStyle(text, style);
@@ -281,21 +282,24 @@ export function makeAnnouncement(
   if (master) {
     masterWav(rawFile, outFile);
     try {
-      if (fs.existsSync(rawFile)) {
-        fs.unlinkSync(rawFile);
-        console.log(`✅ Cleaned up temporary file: ${rawFile}`);
-      }
-    } catch (error) {
-      console.warn(
-        `⚠️  Could not delete temporary file ${rawFile}: ${error.message}`
-      );
-    }
+      if (fs.existsSync(rawFile)) fs.unlinkSync(rawFile);
+    } catch {}
     mainAudio = outFile;
   }
 
   let extras = {};
   if (exportFormats?.length) {
     extras = exportVariants(mainAudio, exportFormats);
+
+    // If you don’t want to keep any WAV around:
+    if (!keepWav && fs.existsSync(mainAudio)) {
+      try {
+        fs.unlinkSync(mainAudio);
+      } catch {}
+      // Optionally, point mainAudio at the first exported format
+      const firstFmt = exportFormats[0].toLowerCase();
+      if (extras[firstFmt]) mainAudio = extras[firstFmt];
+    }
   }
 
   return { text: finalText, audio: mainAudio, extras };
