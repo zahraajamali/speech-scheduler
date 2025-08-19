@@ -1,9 +1,9 @@
 {
-  "text": "The building will close in 15 minutes. Please finish your activities and proceed to the exit.",
-  "lang": "ca",
+  "text": "Welcome to our store! We have special offers today.",
+  "lang": "en",
   "gender": "female",
-  "style": "urgent",
+  "style": "friendly",
   "custom_style": null,
   "master": true,
-  "export_formats": ["mp3"]
+  "export_formats": ["mp3", "m4a"]
 }
