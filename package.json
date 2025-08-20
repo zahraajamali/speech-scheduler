@@ -1,6 +1,6 @@
 {
   "name": "piper-announce",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "description": "AI-powered announcement generator using Piper TTS and OpenAI GPT models",
   "type": "module",
   "main": "src/index.js",
@@ -10,7 +10,11 @@
   "scripts": {
     "start": "node bin/make-announcement",
     "test": "node examples/basic-usage.js",
-    "example": "node examples/basic-usage.js"
+    "example": "node examples/basic-usage.js",
+    "postinstall": "node scripts/post-install.js",
+    "download-voices": "node scripts/download-voices.js",
+    "download-voices:force": "node scripts/download-voices.js --force",
+    "check-voices": "node scripts/download-voices.js --help"
   },
   "keywords": [
     "tts",
@@ -19,7 +23,9 @@
     "text-to-speech",
     "openai",
     "audio-generation",
-    "voice-synthesis"
+    "voice-synthesis",
+    "ai",
+    "speech"
   ],
   "author": "Your Name <your.email@example.com>",
   "license": "MIT",
@@ -44,6 +50,7 @@
   "files": [
     "src/",
     "bin/",
+    "scripts/",
     "examples/",
     "README.md",
     "LICENSE"
