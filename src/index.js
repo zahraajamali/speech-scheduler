@@ -25,7 +25,7 @@ function findVoicesDir() {
   for (const dir of POSSIBLE_VOICE_DIRS) {
     if (fs.existsSync(dir)) return dir;
   }
-  const defaultDir = path.join(process.cwd(), "voices");
+  const defaultDir = path.join(__dirname, "..", "voices");
   fs.mkdirSync(defaultDir, { recursive: true });
   return defaultDir;
 }
@@ -57,6 +57,55 @@ const SYSTEM_RULES = `You are an announcement copywriter.
 - If the request is unsafe/inappropriate, transform it into a safe, inclusive announcement.
 - Output ONLY the announcement text, no quotes, no preface.
 `;
+
+// ---------- VOICE HELPERS ----------
+function checkVoiceAvailability() {
+  const availability = {};
+  const missingVoices = [];
+
+  for (const [lang, genders] of Object.entries(VOICES)) {
+    availability[lang] = {};
+    for (const [gender, voicePath] of Object.entries(genders)) {
+      const exists = fs.existsSync(voicePath);
+      availability[lang][gender] = exists;
+
+      if (!exists) {
+        missingVoices.push({
+          language: lang,
+          gender: gender,
+          path: voicePath,
+          filename: path.basename(voicePath),
+        });
+      }
+    }
+  }
+
+  return { availability, missingVoices };
+}
+
+function suggestVoiceDownload(language, gender) {
+  const colors = {
+    reset: "\x1b[0m",
+    red: "\x1b[31m",
+    yellow: "\x1b[33m",
+    cyan: "\x1b[36m",
+    bright: "\x1b[1m",
+  };
+
+  console.error(
+    `${colors.red}❌ Missing voice files for ${language}/${gender}${colors.reset}`
+  );
+  console.error(
+    `${colors.yellow}💡 Download voice models (both .onnx and .json files) by running:${colors.reset}`
+  );
+  console.error(`${colors.cyan}   npm run download-voices${colors.reset}`);
+  console.error(
+    `${colors.yellow}Or force re-download all voices:${colors.reset}`
+  );
+  console.error(
+    `${colors.cyan}   npm run download-voices:force${colors.reset}`
+  );
+}
 
 // ---------- TEXT HELPERS ----------
 function styleNote(style, customStyle) {
@@ -113,10 +162,18 @@ function synthesizeWithPiper({
   extra_args = [],
 }) {
   const voicePath = VOICES[language?.toLowerCase()]?.[gender?.toLowerCase()];
-  if (!voicePath || !fs.existsSync(voicePath)) {
+  const jsonPath = voicePath + ".json";
+
+  if (!voicePath || !fs.existsSync(voicePath) || !fs.existsSync(jsonPath)) {
+    suggestVoiceDownload(language, gender);
+    const missing = [];
+    if (!fs.existsSync(voicePath)) missing.push(".onnx model");
+    if (!fs.existsSync(jsonPath)) missing.push(".json config");
+
     throw new Error(
-      `Missing voice for language='${language}' gender='${gender}' at ${voicePath}\n\n` +
-        `💡 Run 'npm run setup-voices' to download voice models, or set VOICES_DIR environment variable.`
+      `Missing voice files for language='${language}' gender='${gender}': ${missing.join(
+        " and "
+      )}\n` + `Expected: ${voicePath} and ${jsonPath}`
     );
   }
 
@@ -229,6 +286,13 @@ function stylePresets(style = "") {
 // ---------- NEW EXPORTS ----------
 
 /**
+ * Check which voice models are available
+ */
+export function getVoiceStatus() {
+  return checkVoiceAvailability();
+}
+
+/**
  * Part 1: return the announcement text only.
  */
 export async function generateAnnouncementText(
@@ -259,6 +323,14 @@ export function makeAnnouncement(
     keepWav = false, // NEW
   } = {}
 ) {
+  // Check if voice is available before processing
+  const { availability } = checkVoiceAvailability();
+  if (!availability[language]?.[gender]) {
+    throw new Error(
+      `Voice model not available for ${language}/${gender}. Run 'npm run download-voices' to download missing models.`
+    );
+  }
+
   const finalText = postprocessStyle(text, style);
 
   const ts = new Date()
@@ -291,7 +363,7 @@ export function makeAnnouncement(
   if (exportFormats?.length) {
     extras = exportVariants(mainAudio, exportFormats);
 
-    // If you don’t want to keep any WAV around:
+    // If you don't want to keep any WAV around:
     if (!keepWav && fs.existsSync(mainAudio)) {
       try {
         fs.unlinkSync(mainAudio);
