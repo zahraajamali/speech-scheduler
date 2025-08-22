@@ -158,38 +158,22 @@ function formatBytes(bytes) {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 }
 
-// Check if running in npm environment
-function isRunningInNpm() {
-  return (
-    process.env.npm_lifecycle_event ||
-    process.env.npm_execpath ||
-    process.env.npm_config_cache
-  );
-}
-
-// Create a simple text-based progress indicator that works with npm
-function createSimpleProgress(current, total) {
+function createProgressBar(current, total, width = 40) {
   const percentage = Math.round((current / total) * 100);
-  const width = 20;
   const filled = Math.round((current / total) * width);
   const empty = width - filled;
 
   const bar = "█".repeat(filled) + "░".repeat(empty);
-  return `[${bar}] ${percentage}%`;
+  return `[${colorize(bar, "cyan")}] ${percentage}%`;
 }
 
-// Download function optimized for npm compatibility
 async function downloadFile(
   url,
   filepath,
   filename,
   expectedSize,
-  fileIndex = 0,
-  totalFiles = 1,
   isPostInstall = false
 ) {
-  const isNpm = isRunningInNpm();
-
   return new Promise(async (resolve, reject) => {
     try {
       const response = await fetch(url);
@@ -200,73 +184,56 @@ async function downloadFile(
       const totalSize = parseInt(response.headers.get("content-length") || "0");
       let downloadedSize = 0;
       let lastProgressUpdate = 0;
-      const startTime = Date.now();
 
       const fileStream = createWriteStream(filepath);
 
-      // Show initial message
-      const fileType = filename.endsWith(".json") ? "Config" : "Voice Model";
-      const prefix = totalFiles > 1 ? `[${fileIndex}/${totalFiles}] ` : "";
-
-      console.log(
-        colorize(
-          `${prefix}📥 Downloading ${fileType}: ${filename} (${expectedSize})`,
-          "blue"
-        )
-      );
+      if (isPostInstall) {
+        // Simpler output for npm install
+        const fileType = filename.endsWith(".json") ? "Config" : "Voice Model";
+        console.log(
+          colorize(
+            `📥 Downloading ${fileType}: ${filename} (${expectedSize})`,
+            "blue"
+          )
+        );
+      } else {
+        console.log(colorize(`\n📥 Downloading ${filename}...`, "blue"));
+        const fileType = filename.endsWith(".json") ? "Config" : "Model";
+        console.log(`   Type: ${fileType} | Size: ${expectedSize}`);
+      }
 
       // Create a transform stream to track progress
       const progressStream = new (await import("stream")).Transform({
         transform(chunk, encoding, callback) {
           downloadedSize += chunk.length;
+
+          // Throttle progress updates during npm install
           const now = Date.now();
+          const shouldUpdate = isPostInstall
+            ? now - lastProgressUpdate > 1000 // Update every second during install
+            : true; // Update every chunk normally
 
-          // Show progress at regular intervals that work with npm
-          const timeSinceLastUpdate = now - lastProgressUpdate;
+          if (shouldUpdate && totalSize > 0) {
+            lastProgressUpdate = now;
+            const progressBar = createProgressBar(downloadedSize, totalSize);
+            const downloaded = formatBytes(downloadedSize);
+            const total = formatBytes(totalSize);
 
-          if (totalSize > 0) {
-            const percent = Math.floor((downloadedSize / totalSize) * 100);
-
-            // Show progress every 2 seconds or at key percentages (25%, 50%, 75%)
-            const shouldUpdate =
-              timeSinceLastUpdate > 2000 ||
-              (percent > 0 &&
-                [25, 50, 75, 100].includes(percent) &&
-                timeSinceLastUpdate > 500);
-
-            if (shouldUpdate) {
-              const downloaded = formatBytes(downloadedSize);
-              const total = formatBytes(totalSize);
-              const elapsed = Math.floor((now - startTime) / 1000);
-
-              if (isNpm || isPostInstall) {
-                // Simple progress for npm
-                console.log(
-                  `    📊 ${percent}% (${downloaded}/${total}) - ${elapsed}s`
-                );
-              } else {
-                // More detailed progress for direct CLI usage
-                const progressBar = createSimpleProgress(
-                  downloadedSize,
-                  totalSize
-                );
-                console.log(
-                  `    ${progressBar} ${downloaded}/${total} - ${elapsed}s`
-                );
-              }
-
-              lastProgressUpdate = now;
-            }
-          } else {
-            // Unknown size - show every 3 seconds
-            if (timeSinceLastUpdate > 3000) {
-              console.log(
-                `    📊 Downloaded: ${formatBytes(
-                  downloadedSize
-                )} - ${Math.floor((now - startTime) / 1000)}s`
+            if (isPostInstall) {
+              // Less verbose output for npm install
+              const percentage = Math.round((downloadedSize / totalSize) * 100);
+              process.stdout.write(
+                `\r   Progress: ${percentage}% (${downloaded}/${total})`
               );
-              lastProgressUpdate = now;
+            } else {
+              process.stdout.write(
+                `\r   ${progressBar} ${downloaded}/${total}`
+              );
             }
+          } else if (!totalSize) {
+            process.stdout.write(
+              `\r   Downloaded: ${formatBytes(downloadedSize)}`
+            );
           }
 
           callback(null, chunk);
@@ -275,16 +242,20 @@ async function downloadFile(
 
       await streamPipeline(response.body, progressStream, fileStream);
 
-      const totalTime = Math.floor((Date.now() - startTime) / 1000);
-      console.log(
-        colorize(`    ✅ ${filename} completed (${totalTime}s)`, "green")
-      );
-
+      if (isPostInstall) {
+        console.log(
+          colorize(`\n   ✅ ${filename} downloaded successfully`, "green")
+        );
+      } else {
+        console.log(
+          colorize(`\n   ✅ Successfully downloaded ${filename}`, "green")
+        );
+      }
       resolve();
     } catch (error) {
       console.log(
         colorize(
-          `    ❌ Failed to download ${filename}: ${error.message}`,
+          `\n   ❌ Failed to download ${filename}: ${error.message}`,
           "red"
         )
       );
@@ -355,94 +326,119 @@ async function downloadVoices(force = false, isPostInstall = false) {
   const voicesDir = findVoicesDir();
 
   if (!isPostInstall) {
-    console.log(colorize(`\n📂 Voices directory: ${voicesDir}`, "yellow"));
+    console.log(colorize(`\nVoices directory: ${voicesDir}`, "yellow"));
   }
 
   const { existing, missing } = checkExistingVoices(voicesDir);
 
-  if (!force && missing.length === 0) {
-    if (!isPostInstall) {
+  // Show existing voices
+  if (!isPostInstall && existing.length > 0) {
+    console.log(
+      colorize(`\n✅ Found ${existing.length} existing voice models:`, "green")
+    );
+    existing.forEach(({ voiceName, voiceData }) => {
       console.log(
-        colorize("\n✅ All voice models are already downloaded!", "green")
+        `   • ${voiceData.language} ${voiceData.gender} (${voiceData.quality})`
       );
-
-      console.log(colorize("\n📋 Available voices:", "cyan"));
-      existing.forEach(({ voiceData }) => {
-        console.log(
-          `   • ${voiceData.language} ${voiceData.gender} (${voiceData.quality})`
-        );
-      });
-    }
-    return;
+    });
   }
 
-  // Prepare download list
+  // Determine what needs to be downloaded
   const filesToDownload = [];
 
-  if (force) {
-    // Re-download everything
+  if (force && !isPostInstall) {
+    // Force mode: re-download everything
+    console.log(
+      colorize("\n🔄 Force mode: Re-downloading all voice models", "yellow")
+    );
     for (const [voiceName, voiceData] of Object.entries(VOICE_MODELS)) {
-      const onnxPath = path.join(voicesDir, voiceData.files.onnx.filename);
-      const jsonPath = path.join(voicesDir, voiceData.files.json.filename);
+      const voiceDir = path.dirname(
+        path.join(voicesDir, voiceData.files.onnx.filename)
+      );
 
+      // Add both onnx and json files
       filesToDownload.push({
         voiceName,
+        type: "onnx",
         filename: voiceData.files.onnx.filename,
-        filepath: onnxPath,
+        filepath: path.join(voicesDir, voiceData.files.onnx.filename),
         url: voiceData.files.onnx.url,
         size: voiceData.files.onnx.size,
       });
-
       filesToDownload.push({
         voiceName,
+        type: "json",
         filename: voiceData.files.json.filename,
-        filepath: jsonPath,
+        filepath: path.join(voicesDir, voiceData.files.json.filename),
         url: voiceData.files.json.url,
         size: voiceData.files.json.size,
       });
     }
   } else {
-    // Only download missing files
-    missing.forEach(({ missingFiles }) => {
-      filesToDownload.push(...missingFiles);
+    // Normal mode: only download missing files
+    missing.forEach(({ voiceName, missingFiles }) => {
+      missingFiles.forEach((file) => {
+        filesToDownload.push({ ...file, voiceName });
+      });
     });
   }
 
   if (filesToDownload.length === 0) {
-    console.log(colorize("✅ Nothing to download!", "green"));
+    if (!isPostInstall) {
+      console.log(colorize("\n🎉 All voice models are up to date!", "green"));
+    }
     return;
   }
 
-  // Calculate total size
+  // Calculate total download size
   let totalSizeMB = 0;
   filesToDownload.forEach((file) => {
     const sizeNum = parseFloat(file.size);
-    totalSizeMB += file.size.includes("MB") ? sizeNum : sizeNum / 1024;
+    if (file.size.includes("MB")) {
+      totalSizeMB += sizeNum;
+    } else if (file.size.includes("KB")) {
+      totalSizeMB += sizeNum / 1024;
+    }
   });
 
   if (!isPostInstall) {
     console.log(
       colorize(
-        `\n📊 Will download ${filesToDownload.length} files (~${Math.round(
+        `\n📦 Will download ${filesToDownload.length} files (~${Math.round(
           totalSizeMB
-        )}MB total)`,
+        )}MB)`,
+        "cyan"
+      )
+    );
+    console.log(colorize("🚀 Starting downloads...\n", "blue"));
+  } else {
+    console.log(
+      colorize(
+        `📦 Downloading ${filesToDownload.length} voice files (~${Math.round(
+          totalSizeMB
+        )}MB)`,
         "cyan"
       )
     );
   }
 
-  if (force) {
-    console.log(colorize("🔄 Force mode: Re-downloading all voices", "yellow"));
-  }
-
-  console.log(colorize("🚀 Starting downloads...", "blue"));
-
   let successCount = 0;
   let failCount = 0;
 
-  // Download files with progress
+  // Download files
   for (let i = 0; i < filesToDownload.length; i++) {
     const file = filesToDownload[i];
+
+    if (!isPostInstall) {
+      console.log(
+        colorize(
+          `\n[${i + 1}/${filesToDownload.length}] ${
+            file.voiceName || "Unknown"
+          }`,
+          "magenta"
+        )
+      );
+    }
 
     try {
       await downloadFile(
@@ -450,8 +446,6 @@ async function downloadVoices(force = false, isPostInstall = false) {
         file.filepath,
         file.filename,
         file.size,
-        i + 1,
-        filesToDownload.length,
         isPostInstall
       );
       successCount++;
@@ -464,38 +458,34 @@ async function downloadVoices(force = false, isPostInstall = false) {
         }
       } catch {}
     }
-
-    // Show overall progress
-    const overallPercent = Math.round(((i + 1) / filesToDownload.length) * 100);
-    console.log(
-      colorize(
-        `🔄 Overall Progress: ${overallPercent}% (${i + 1}/${
-          filesToDownload.length
-        } files)`,
-        "magenta"
-      )
-    );
   }
 
-  // Final summary
-  console.log(colorize("\n📊 Download Summary:", "bright"));
+  // Show final summary
+  if (!isPostInstall) {
+    console.log(colorize("\n📊 Download Summary:", "bright"));
+    console.log(colorize("=".repeat(30), "blue"));
+  }
+
   if (successCount > 0) {
-    console.log(
-      colorize(`✅ Successfully downloaded: ${successCount} files`, "green")
-    );
+    const message = `✅ Successfully downloaded ${successCount} files`;
+    console.log(colorize(message, "green"));
   }
+
   if (failCount > 0) {
-    console.log(colorize(`❌ Failed downloads: ${failCount} files`, "red"));
-    console.log(
-      colorize(
-        "💡 You can retry failed downloads by running the command again",
-        "yellow"
-      )
-    );
+    const message = `❌ Failed to download ${failCount} files`;
+    console.log(colorize(message, "red"));
+
+    if (!isPostInstall) {
+      console.log(
+        colorize("💡 You can retry failed downloads with:", "yellow")
+      );
+      console.log(colorize("   npm run download-voices", "cyan"));
+    }
   }
 
   if (successCount === filesToDownload.length) {
-    console.log(colorize("🎉 All voice models are now ready!", "green"));
+    const message = "🎉 All voice models are ready!";
+    console.log(colorize(message, "green"));
   }
 }
 
@@ -503,7 +493,6 @@ async function downloadVoices(force = false, isPostInstall = false) {
 export { downloadVoices, checkExistingVoices, VOICE_MODELS };
 
 // CLI usage
-// Update the CLI usage part
 if (import.meta.url === `file://${process.argv[1]}`) {
   const force = process.argv.includes("--force") || process.argv.includes("-f");
   const help = process.argv.includes("--help") || process.argv.includes("-h");
