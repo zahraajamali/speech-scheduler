@@ -1,6 +1,6 @@
 {
   "name": "piper-announce",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "AI-powered announcement generator using Piper TTS and OpenAI GPT models",
   "type": "module",
   "main": "src/index.js",
