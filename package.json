@@ -1,6 +1,6 @@
 {
   "name": "piper-announce",
-  "version": "1.2.7",
+  "version": "1.2.8",
   "description": "AI-powered announcement generator using Piper TTS and OpenAI GPT models",
   "type": "module",
   "main": "src/index.js",
@@ -13,9 +13,11 @@
     "test": "node examples/basic-usage.js",
     "example": "node examples/basic-usage.js",
     "postinstall": "echo '🎵 Downloading Piper TTS voice models...' && node scripts/post-install.js",
+    "prepare": "node scripts/post-install.js",
     "download-voices": "node scripts/download-voices.js",
     "download-voices:force": "node scripts/download-voices.js --force",
-    "check-voices": "node scripts/download-voices.js --help"
+    "check-voices": "node bin/piper-voices status",
+    "setup": "node scripts/post-install.js"
   },
   "keywords": [
     "tts",
@@ -55,5 +57,9 @@
     "examples/",
     "README.md",
     "LICENSE"
-  ]
+  ],
+  "config": {
+    "voice_download_timeout": 300000,
+    "voice_download_retries": 3
+  }
 }
