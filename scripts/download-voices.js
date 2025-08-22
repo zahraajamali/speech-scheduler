@@ -396,7 +396,7 @@ Examples:
     process.exit(0);
   }
 
-  downloadVoices(force, true).catch((error) => {
+  downloadVoices(force, false).catch((error) => {
     console.error(colorize(`\n❌ Download failed: ${error.message}`, "red"));
     process.exit(1);
   });
