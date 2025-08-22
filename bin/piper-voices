@@ -1,0 +1,129 @@
+#!/usr/bin/env node
+import {
+  downloadVoices,
+  checkExistingVoices,
+  VOICE_MODELS,
+} from "../scripts/download-voices.js";
+import { getVoiceStatus } from "../src/index.js";
+
+const colors = {
+  reset: "\x1b[0m",
+  bright: "\x1b[1m",
+  red: "\x1b[31m",
+  green: "\x1b[32m",
+  yellow: "\x1b[33m",
+  blue: "\x1b[34m",
+  cyan: "\x1b[36m",
+};
+
+function colorize(text, color) {
+  return `${colors[color]}${text}${colors.reset}`;
+}
+
+function displayVoiceStatus() {
+  console.log(colorize("\n📊 Voice Model Status:", "bright"));
+  console.log(colorize("═".repeat(50), "blue"));
+
+  const { availability, missingVoices } = getVoiceStatus();
+
+  const languageNames = {
+    en: "English (GB)",
+    es: "Spanish (ES)",
+    ca: "Catalan (ES)",
+  };
+
+  for (const [langCode, genders] of Object.entries(availability)) {
+    const langName = languageNames[langCode] || langCode;
+    console.log(colorize(`\n${langName} (${langCode}):`, "yellow"));
+
+    for (const [gender, available] of Object.entries(genders)) {
+      const status = available ? "✅ Available" : "❌ Missing";
+      const statusColor = available ? "green" : "red";
+      console.log(
+        `  ${gender.charAt(0).toUpperCase() + gender.slice(1)}: ${colorize(
+          status,
+          statusColor
+        )}`
+      );
+    }
+  }
+
+  if (missingVoices.length > 0) {
+    console.log(colorize("\n💡 To download missing voices:", "yellow"));
+    console.log(colorize("   piper-voices download", "cyan"));
+    console.log(colorize("\n💡 To force re-download all voices:", "yellow"));
+    console.log(colorize("   piper-voices download --force", "cyan"));
+  } else {
+    console.log(colorize("\n🎉 All voice models are available!", "green"));
+  }
+}
+
+function showHelp() {
+  console.log(`
+${colorize("🎵 Piper Announce Voice Manager", "bright")}
+
+Usage: piper-voices <command> [options]
+
+Commands:
+  ${colorize("status", "cyan")}           Check which voice models are available
+  ${colorize("download", "cyan")}         Download missing voice models
+  ${colorize("download --force", "cyan")}  Re-download all voice models
+  ${colorize("help", "cyan")}             Show this help message
+
+Examples:
+  piper-voices status          # Check voice availability
+  piper-voices download        # Download missing voices
+  piper-voices download --force # Re-download all voices
+
+Voice Models:
+  English (GB): Female (jenny_dioco), Male (alan)
+  Spanish (ES): Female (mls_10246), Male (carlfm)  
+  Catalan (ES): Female (upc_ona), Male (upc_pau)
+`);
+}
+
+async function main() {
+  const args = process.argv.slice(2);
+  const command = args[0];
+  const force = args.includes("--force") || args.includes("-f");
+
+  if (
+    !command ||
+    command === "help" ||
+    command === "--help" ||
+    command === "-h"
+  ) {
+    showHelp();
+    return;
+  }
+
+  switch (command) {
+    case "status":
+    case "check":
+      displayVoiceStatus();
+      break;
+
+    case "download":
+      try {
+        await downloadVoices(force);
+      } catch (error) {
+        console.error(
+          colorize(`\n❌ Download failed: ${error.message}`, "red")
+        );
+        process.exit(1);
+      }
+      break;
+
+    default:
+      console.error(colorize(`❌ Unknown command: ${command}`, "red"));
+      console.log(
+        colorize("Run 'piper-voices help' for usage information", "yellow")
+      );
+      process.exit(1);
+  }
+}
+
+main().catch((error) => {
+  console.error(colorize(`❌ Error: ${error.message}`, "red"));
+  process.exit(1);
+});

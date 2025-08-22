@@ -56,7 +56,77 @@ You'll need these tools installed:
 - **FFmpeg** - For audio processing and format conversion
 - **OpenAI API Key** - Set as `OPENAI_API_KEY` environment variable
 
-## Voice Management
+## Voice Model Management
+
+After installing the package, you can manage voice models using the `piper-voices` command:
+
+**Check Voice Status**
+
+```bash
+piper-voices status
+```
+
+This shows which voice models are available:
+
+```
+📊 Voice Model Status:
+═══════════════════════════════════════════════
+
+English (GB) (en):
+  Female: ✅ Available
+  Male: ✅ Available
+
+Spanish (ES) (es):
+  Female: ✅ Available
+  Male: ❌ Missing
+
+💡 To download missing voices:
+   piper-voices download
+```
+
+**Download Missing Voices**
+
+```bash
+piper-voices download
+```
+
+**Force Re-download All Voices**
+
+```bash
+piper-voices download --force
+```
+
+**Alternative: Use npx**
+
+If the `piper-voices` command is not available in your PATH:
+
+```bash
+npx piper-voices status
+npx piper-voices download
+npx piper-voices download --force
+```
+
+### Programmatic Voice Management
+
+You can also check voice status programmatically:
+
+```javascript
+import { getVoiceStatus } from "piper-announce";
+
+const { availability, missingVoices } = getVoiceStatus();
+console.log(availability);
+// {
+//   en: { female: true, male: true },
+//   es: { female: true, male: false },
+//   ca: { female: true, male: true }
+// }
+
+if (missingVoices.length > 0) {
+  console.log("Missing voices:", missingVoices);
+}
+```
+
+<!-- ## Voice Management
 
 ### Check Voice Status
 
@@ -103,7 +173,7 @@ export CI=true
 # Skip manually
 export SKIP_VOICE_DOWNLOAD=true
 npm install piper-announce
-```
+``` -->
 
 ## Usage
 
