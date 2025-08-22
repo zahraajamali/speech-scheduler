@@ -2,7 +2,7 @@
 
 🎵 AI-powered announcement generator using Piper TTS and OpenAI GPT models with **automatic voice model downloads**.
 
-## ✨ New in v1.2.0
+## ✨ New in v1.2.2
 
 - **🚀 Automatic Voice Downloads**: Voice models are now downloaded automatically during installation
 - **📊 Progress Tracking**: See real-time download progress for each voice model

@@ -105,7 +105,7 @@ async function main() {
 
     case "download":
       try {
-        await downloadVoices(force);
+        await downloadVoices(force, false); // false for isPostInstall
       } catch (error) {
         console.error(
           colorize(`\n❌ Download failed: ${error.message}`, "red")
