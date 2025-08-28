@@ -1,24 +1,25 @@
 # Piper Announce
 
-🎵 AI-powered announcement generator using Piper TTS and OpenAI GPT models with **automatic voice model downloads**.
+AI-powered announcement generator with **bundled Piper TTS** - no external dependencies required.
 
-## ✨ New in v1.2.2
+## New in v1.3.0 - Zero Configuration Setup
 
-- **🚀 Automatic Voice Downloads**: Voice models are now downloaded automatically during installation
-- **📊 Progress Tracking**: See real-time download progress for each voice model
-- **🔍 Voice Status Checking**: Check which voices are available with built-in commands
-- **⚡ Smart Error Handling**: Helpful suggestions when voice models are missing
+- **Bundled Piper TTS**: No need to install Piper separately - it's included in the package
+- **One-Command Installation**: Just `npm install piper-announce` and you're ready to go
+- **Cross-Platform Support**: Works on Linux, macOS (Intel & Apple Silicon), and Windows
+- **Automatic Downloads**: Voice models and binaries download automatically during installation
+- **No System Dependencies**: Everything you need is bundled in the package
 
 ## Features
 
 - **AI-Powered Text Generation**: Transform your ideas into polished announcements using OpenAI GPT
-- **High-Quality TTS**: Generate natural-sounding speech with Piper neural voices
+- **Bundled High-Quality TTS**: Generate natural-sounding speech with included Piper neural voices
 - **Multiple Languages**: Support for English, Spanish, and Catalan
 - **Voice Variety**: Male and female voices for each language
 - **Style Presets**: Choose from friendly, formal, urgent, or custom styles
 - **Audio Mastering**: Professional audio processing with normalization and filtering
 - **Multiple Formats**: Export to WAV, MP3, M4A, and Opus
-- **Automatic Setup**: Voice models download automatically on installation
+- **Zero Configuration**: Everything works out of the box
 
 ## Quick Start
 
@@ -28,157 +29,47 @@
 npm install piper-announce
 ```
 
-**That's it!** Voice models will download automatically during installation. You'll see progress bars for each download:
+**That's it!** The package includes everything you need:
+
+- Piper TTS binaries for your platform
+- Voice models download automatically
+- No additional setup required
+
+During installation, you'll see:
 
 ```
-🎵 Piper Announce Voice Downloader
-==================================================
-
-⬇️  Need to download (6):
-   • en_GB-jenny_dioco-medium.onnx (English (GB), Female, 63MB)
-   • en_GB-alan-low.onnx (English (GB), Male, 22MB)
-   • es_ES-mls_10246-low.onnx (Spanish (ES), Female, 22MB)
-   • es_ES-carlfm-x_low.onnx (Spanish (ES), Male, 9MB)
-   • ca_ES-upc_ona-x_low.onnx (Catalan (ES), Female, 9MB)
-   • ca_ES-upc_pau-x_low.onnx (Catalan (ES), Male, 9MB)
-
-📥 Downloading en_GB-jenny_dioco-medium.onnx...
-   [████████████████████████████████████████] 100% 63.2MB/63.2MB
-   ✅ Successfully downloaded en_GB-jenny_dioco-medium.onnx
+📦 Downloading Piper binary for linux-x64...
+✅ Piper binary downloaded successfully!
+🎤 Downloading voice models...
+📥 Downloading Voice Model: en_GB-jenny_dioco-medium.onnx (63MB)
+   Progress: 100% (63.2MB/63.2MB)
+   ✅ en_GB-jenny_dioco-medium.onnx downloaded successfully
+🎉 Piper Announce setup complete!
+💡 No external Piper installation required!
 ```
 
 ### Prerequisites
 
-You'll need these tools installed:
+Minimal requirements:
 
 - **Node.js** 16+
-- **Piper TTS** - Install using pip: `pip install piper-tts`
-- **FFmpeg** - For audio processing and format conversion
 - **OpenAI API Key** - Set as `OPENAI_API_KEY` environment variable
+- **FFmpeg** (optional) - Only needed for audio format conversion and mastering
 
-#### Installing Piper TTS
+**No Piper installation required** - it's bundled with the package!
 
-The easiest way to install Piper TTS is using pip. This library uses the python package from [piper](https://github.com/OHF-Voice/piper1-gpl).
+### Environment Setup
 
-```bash
-pip install piper-tts
-```
-
-After installation, find the piper binary location:
-
-**macOS:**
+Create a `.env` file or set environment variables:
 
 ```bash
-which piper
-# Typical path: /opt/homebrew/bin/piper (Homebrew) or /usr/local/bin/piper
-```
-
-**Linux:**
-
-```bash
-which piper
-# Typical paths: ~/.local/bin/piper or /usr/local/bin/piper
-```
-
-**Windows:**
-
-```cmd
-where piper
-# Typical path: C:\Python311\Scripts\piper.exe or similar
-```
-
-Add the path shown by the command above to your environment variables:
-
-**Method 1: Environment Variable**
-
-```bash
-export PIPER_BIN=/opt/homebrew/bin/piper
-```
-
-**Method 2: .env file**
-
-```bash
-# Create or edit your .env file
-PIPER_BIN=/opt/homebrew/bin/piper
+# Required
 OPENAI_API_KEY=your_openai_api_key_here
-```
 
-**Method 3: Add to shell profile**
-
-```bash
-# Add to ~/.zshrc or ~/.bash_profile
-echo 'export PIPER_BIN=/opt/homebrew/bin/piper' >> ~/.zshrc
-source ~/.zshrc
-```
-
-## Voice Model Management
-
-After installing the package, you can manage voice models using the `piper-voices` command:
-
-**Check Voice Status**
-
-```bash
-piper-voices status
-```
-
-This shows which voice models are available:
-
-```
-📊 Voice Model Status:
-═══════════════════════════════════════════════
-
-English (GB) (en):
-  Female: ✅ Available
-  Male: ✅ Available
-
-Spanish (ES) (es):
-  Female: ✅ Available
-  Male: ❌ Missing
-
-💡 To download missing voices:
-   piper-voices download
-```
-
-**Download Missing Voices**
-
-```bash
-piper-voices download
-```
-
-**Force Re-download All Voices**
-
-```bash
-piper-voices download --force
-```
-
-**Alternative: Use npx**
-
-If the `piper-voices` command is not available in your PATH:
-
-```bash
-npx piper-voices status
-npx piper-voices download
-npx piper-voices download --force
-```
-
-### Programmatic Voice Management
-
-You can also check voice status programmatically:
-
-```javascript
-import { getVoiceStatus } from "piper-announce";
-
-const { availability, missingVoices } = getVoiceStatus();
-console.log(availability);
-// {
-//   en: { female: true, male: true },
-//   es: { female: true, male: false },
-//   ca: { female: true, male: true }
-// }
-
-if (missingVoices.length > 0) {
-  console.log("Missing voices:", missingVoices);
-}
+# Optional
+VOICES_DIR=/path/to/voices           # Custom voices directory
+SKIP_VOICE_DOWNLOAD=true            # Skip automatic voice download (CI environments)
+SKIP_BINARY_DOWNLOAD=true           # Skip binary download (testing/CI)
 ```
 
 ## Usage
@@ -197,9 +88,10 @@ const text = await generateAnnouncementText(
   }
 );
 
-console.log(text); // "The library will be closing in 15 minutes. Please gather your belongings and head to the checkout desk."
+console.log(text);
+// "The library will be closing in 15 minutes. Please gather your belongings and head to the checkout desk."
 
-// Step 2: Generate audio
+// Step 2: Generate audio (uses bundled Piper TTS)
 const result = makeAnnouncement(text, {
   language: "en",
   gender: "female",
@@ -218,7 +110,7 @@ console.log(result);
 // }
 ```
 
-### Check Voice Availability Programmatically
+### Check Voice Availability
 
 ```javascript
 import { getVoiceStatus } from "piper-announce";
@@ -237,50 +129,58 @@ if (missingVoices.length > 0) {
 }
 ```
 
-### Advanced Usage
+## Voice Model Management
 
-```javascript
-import { generateAnnouncementText, makeAnnouncement } from "piper-announce";
+The package includes a `piper-voices` command for managing voice models:
 
-// Custom style with specific requirements
-const customText = await generateAnnouncementText("Fire drill in 5 minutes", {
-  language: "en",
-  style: "custom",
-  customStyle: "Calm but authoritative, reassuring tone",
-});
+**Check Voice Status**
 
-// High-quality audio with multiple formats
-const result = makeAnnouncement(customText, {
-  language: "en",
-  gender: "male",
-  style: "urgent",
-  master: true, // Apply audio mastering
-  exportFormats: ["mp3", "opus"],
-  keepWav: false, // Delete WAV after conversion
-});
+```bash
+piper-voices status
 ```
+
+**Download Missing Voices**
+
+```bash
+piper-voices download
+```
+
+**Force Re-download All Voices**
+
+```bash
+piper-voices download --force
+```
+
+**Alternative: Use npx**
+
+```bash
+npx piper-voices status
+npx piper-voices download
+npx piper-voices download --force
+```
+
+## Platform Support
+
+The package automatically detects your platform and uses the appropriate Piper binary:
+
+| Platform | Architecture          | Binary Size | Status       |
+| -------- | --------------------- | ----------- | ------------ |
+| Linux    | x64                   | ~45MB       | ✅ Supported |
+| Windows  | x64                   | ~42MB       | ✅ Supported |
+| macOS    | Intel (x64)           | ~48MB       | ✅ Supported |
+| macOS    | Apple Silicon (ARM64) | ~46MB       | ✅ Supported |
+
+Unsupported platforms will show a helpful error message with manual installation instructions.
 
 ## Configuration
 
-### Environment Variables
-
-```bash
-# Required
-OPENAI_API_KEY=your_openai_api_key_here
-PIPER_BIN=/opt/homebrew/bin/piper    # Path to piper binary (from 'which piper')
-
-# Optional
-VOICES_DIR=/path/to/voices           # Custom voices directory
-SKIP_VOICE_DOWNLOAD=true            # Skip automatic voice download
-```
-
 ### Supported Languages & Voices
 
-| Language     | Code | Female Voice | Male Voice | Quality    |
-| ------------ | ---- | ------------ | ---------- | ---------- |
-| English (GB) | `en` | jenny_dioco  | alan       | Medium/Low |
-| Spanish (ES) | `es` | mls_10246    | carlfm     | Low/X-Low  |
-| Catalan (ES) | `ca` | upc_ona      | upc_pau    | X-Low      |
+| Language     | Code | Female Voice | Male Voice | Quality    | Size |
+| ------------ | ---- | ------------ | ---------- | ---------- | ---- |
+| English (GB) | `en` | jenny_dioco  | alan       | Medium/Low | 85MB |
+| Spanish (ES) | `es` | mls_10246    | carlfm     | Low/X-Low  | 31MB |
+| Catalan (ES) | `ca` | upc_ona      | upc_pau    | X-Low      | 18MB |
 
 ### Style Options
 
@@ -307,7 +207,7 @@ Generate polished announcement text using AI.
 
 ### `makeAnnouncement(text, options)`
 
-Convert text to high-quality speech.
+Convert text to high-quality speech using bundled Piper TTS.
 
 **Parameters:**
 
@@ -316,8 +216,8 @@ Convert text to high-quality speech.
   - `language` (string) - Language code: 'en', 'es', 'ca'
   - `gender` (string) - Voice gender: 'female', 'male'
   - `style` (string) - Audio style preset
-  - `master` (boolean) - Apply audio mastering (default: true)
-  - `exportFormats` (array) - Additional formats: ['mp3', 'm4a', 'opus']
+  - `master` (boolean) - Apply audio mastering (default: true, requires FFmpeg)
+  - `exportFormats` (array) - Additional formats: ['mp3', 'm4a', 'opus'] (requires FFmpeg)
   - `keepWav` (boolean) - Keep WAV file (default: false)
 
 **Returns:** Object with `text`, `audio`, and `extras` properties
@@ -328,96 +228,146 @@ Check voice model availability.
 
 **Returns:** Object with `availability` and `missingVoices` properties
 
-## Voice Models
+## Advanced Usage
 
-Voice models are automatically downloaded from Hugging Face's [rhasspy/piper-voices](https://huggingface.co/rhasspy/piper-voices) repository. Total download size is approximately ~134MB for all voices.
+### Custom Style with High-Quality Output
 
-### Manual Voice Management
+```javascript
+import { generateAnnouncementText, makeAnnouncement } from "piper-announce";
 
-If you need to manage voices manually:
+// Custom style with specific requirements
+const customText = await generateAnnouncementText("Fire drill in 5 minutes", {
+  language: "en",
+  style: "custom",
+  customStyle: "Calm but authoritative, reassuring tone",
+});
 
-```bash
-# Check what's available
-node -e "import('./src/index.js').then(m => console.log(m.getVoiceStatus()))"
+// High-quality audio with multiple formats
+const result = makeAnnouncement(customText, {
+  language: "en",
+  gender: "male",
+  style: "urgent",
+  master: true, // Apply audio mastering (requires FFmpeg)
+  exportFormats: ["mp3", "opus"], // Convert to additional formats (requires FFmpeg)
+  keepWav: false, // Delete WAV after conversion
+});
+```
 
-# Download missing voices
-npm run download-voices
+### Batch Processing
 
-# Force re-download all
-npm run download-voices:force
+```javascript
+import { makeAnnouncement } from "piper-announce";
+
+const announcements = [
+  { text: "Welcome to our store", lang: "en", voice: "female" },
+  { text: "Bienvenidos a nuestra tienda", lang: "es", voice: "female" },
+  { text: "Benvinguts a la nostra botiga", lang: "ca", voice: "male" },
+];
+
+for (const announcement of announcements) {
+  const result = makeAnnouncement(announcement.text, {
+    language: announcement.lang,
+    gender: announcement.voice,
+    style: "friendly",
+  });
+  console.log(`Generated: ${result.audio}`);
+}
 ```
 
 ## Troubleshooting
 
-### Piper Installation Issues
-
-**"Piper command not found"**
-
-1. Install Piper TTS using pip:
-
-   ```bash
-   pip install piper-tts
-   ```
-
-2. Find the installation path:
-
-   ```bash
-   which piper
-   ```
-
-3. Set the environment variable:
-   ```bash
-   export PIPER_BIN=/opt/homebrew/bin/piper
-   # or add to your .env file
-   ```
-
-### Voice Download Issues
-
-If voice downloads fail during installation:
-
-```bash
-# Retry voice downloads
-npm run download-voices
-
-# Check your internet connection and try again
-npm run download-voices:force
-
-# Check voice status
-node examples/voice-status.js
-```
-
 ### Common Issues
 
-**"Missing voice for language/gender"**
+**"Bundled Piper binary not found"**
+This usually means the binary download failed during installation. Try:
+
+```bash
+npm run download-binaries
+```
+
+**"Unsupported platform"**
+Your platform isn't supported by the bundled binaries. The package will show instructions for manual Piper installation.
+
+**"Voice model not available"**
+Voice models failed to download during installation:
 
 ```bash
 npm run download-voices
 ```
 
-**"FFmpeg command not found"**
+**"ffmpeg command not found"** (only affects audio mastering/format conversion)
 
 ```bash
-# Install FFmpeg
+# Install FFmpeg (optional - only needed for mastering/conversion)
 # macOS: brew install ffmpeg
 # Ubuntu: sudo apt install ffmpeg
 # Windows: Download from https://ffmpeg.org
 ```
 
-**Permission denied errors**
-
-If you get permission errors when running piper, make sure it's executable:
+### Environment Variables for CI/Testing
 
 ```bash
-chmod +x $(which piper)
+# Skip downloads in CI environments
+CI=true npm install
+
+# Or manually skip specific downloads
+SKIP_VOICE_DOWNLOAD=true npm install
+SKIP_BINARY_DOWNLOAD=true npm install
 ```
+
+### Manual Downloads
+
+If automatic downloads fail:
+
+```bash
+# Download binaries manually
+npm run download-binaries
+
+# Download voice models manually
+npm run download-voices
+
+# Force re-download everything
+npm run download-voices:force
+```
+
+## File Structure
+
+After installation, your `node_modules/piper-announce` will contain:
+
+```
+piper-announce/
+├── binaries/
+│   ├── linux-x64/piper/piper
+│   ├── win32-x64/piper/piper.exe
+│   ├── darwin-x64/piper/piper
+│   └── darwin-arm64/piper/piper
+├── voices/
+│   ├── en_GB-jenny_dioco-medium.onnx
+│   ├── en_GB-alan-low.onnx
+│   └── ...
+├── src/
+└── scripts/
+```
+
+## Package Size
+
+Total package size varies by platform:
+
+- **Base package**: ~2MB (code only)
+- **+ Platform binary**: ~45MB (downloaded automatically)
+- **+ All voice models**: ~134MB (downloaded automatically)
+- **Total installed size**: ~180MB
+
+Only the binary for your platform is downloaded, keeping the installation efficient.
 
 ## Examples
 
-Check the `examples/` directory:
+Check the `examples/` directory for complete examples:
 
 - `examples/basic-usage.js` - Basic text generation and synthesis
 - `examples/voice-status.js` - Check voice availability
 - `examples/batch-announcements.js` - Generate multiple announcements
+- `examples/platform-info.js` - Show platform detection and binary paths
 
 ## Contributing
 
@@ -433,24 +383,33 @@ MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Changelog
 
+### v1.3.0 - Bundled Piper TTS
+
+- **Bundled Piper TTS**: No external Piper installation required
+- **Cross-Platform Support**: Linux, macOS (Intel & ARM), Windows binaries included
+- **Zero Configuration**: Everything works out of the box
+- **Automatic Binary Downloads**: Platform-specific binaries download during installation
+- **Improved Error Handling**: Better error messages and platform detection
+- **Reduced Dependencies**: No longer requires system Piper installation
+
 ### v1.2.2
 
-- ✨ Simplified Piper TTS installation using pip
-- 📝 Updated documentation with pip installation instructions
-- 🔧 Enhanced environment variable configuration
-- 🛠️ Improved troubleshooting guide
+- Simplified Piper TTS installation using pip
+- Updated documentation with pip installation instructions
+- Enhanced environment variable configuration
+- Improved troubleshooting guide
 
 ### v1.2.0
 
-- ✨ Added automatic voice model downloads during installation
-- 📊 Added progress tracking for downloads
-- 🔍 Added voice status checking functionality
-- ⚡ Improved error messages with helpful suggestions
-- 🛠️ Enhanced API with `getVoiceStatus()` function
+- Added automatic voice model downloads during installation
+- Added progress tracking for downloads
+- Added voice status checking functionality
+- Improved error messages with helpful suggestions
+- Enhanced API with `getVoiceStatus()` function
 
 ### v1.1.2
 
-- 🎵 Initial release with manual voice setup
-- 🤖 AI-powered text generation
-- 🗣️ Multi-language TTS support
-- 🎛️ Audio mastering and format conversion
+- Initial release with manual voice setup
+- AI-powered text generation
+- Multi-language TTS support
+- Audio mastering and format conversion

@@ -1,7 +1,7 @@
 {
   "name": "piper-announce",
-  "version": "1.2.10",
-  "description": "AI-powered announcement generator using Piper TTS and OpenAI GPT models",
+  "version": "1.3.0",
+  "description": "AI-powered announcement generator with bundled Piper TTS",
   "type": "module",
   "main": "src/index.js",
   "bin": {
@@ -12,12 +12,14 @@
     "start": "node bin/make-announcement",
     "test": "node examples/basic-usage.js",
     "example": "node examples/basic-usage.js",
-    "postinstall": "echo '🎵 Downloading Piper TTS voice models...' && node scripts/post-install.js",
-    "prepare": "node scripts/post-install.js",
+    "postinstall": "node scripts/post-install.js",
+    "prepare": "node scripts/download-binaries.js && node scripts/post-install.js",
     "download-voices": "node scripts/download-voices.js",
     "download-voices:force": "node scripts/download-voices.js --force",
+    "download-binaries": "node scripts/download-binaries.js",
     "check-voices": "node bin/piper-voices status",
-    "setup": "node scripts/post-install.js"
+    "setup": "node scripts/post-install.js",
+    "build": "node scripts/download-binaries.js"
   },
   "keywords": [
     "tts",
@@ -28,7 +30,8 @@
     "audio-generation",
     "voice-synthesis",
     "ai",
-    "speech"
+    "speech",
+    "bundled"
   ],
   "author": "Your Name <your.email@example.com>",
   "license": "MIT",
@@ -36,27 +39,33 @@
     "type": "git",
     "url": "https://github.com/zahraajamali/speech-scheduler.git"
   },
-  "bugs": {
-    "url": "https://github.com/zahraajamali/speech-scheduler/issues"
-  },
-  "homepage": "https://github.com/zahraajamali/speech-scheduler#readme",
   "engines": {
     "node": ">=16.0.0"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
-    "openai": "^4.56.0"
-  },
-  "peerDependencies": {
-    "piper": "*"
+    "openai": "^4.56.0",
+    "tar": "^6.2.0",
+    "yauzl": "^2.10.0"
   },
   "files": [
     "src/",
     "bin/",
     "scripts/",
     "examples/",
+    "binaries/",
+    "voices/",
     "README.md",
     "LICENSE"
+  ],
+  "os": [
+    "linux",
+    "darwin",
+    "win32"
+  ],
+  "cpu": [
+    "x64",
+    "arm64"
   ],
   "config": {
     "voice_download_timeout": 300000,

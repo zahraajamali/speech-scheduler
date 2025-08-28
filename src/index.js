@@ -1,10 +1,10 @@
-#!/usr/bin/env node
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { spawnSync } from "child_process";
 import dotenv from "dotenv";
 import OpenAI from "openai";
+import { synthesizeWithBundledPiper } from "./piper-bundled.js";
 
 dotenv.config();
 
@@ -12,8 +12,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // ---------- CONFIG ----------
-const PIPER_BIN = process.env.PIPER_BIN || "piper";
-
+// Remove PIPER_BIN dependency - we'll use bundled version
 const POSSIBLE_VOICE_DIRS = [
   process.env.VOICES_DIR,
   path.join(process.cwd(), "voices"),
@@ -83,31 +82,7 @@ function checkVoiceAvailability() {
   return { availability, missingVoices };
 }
 
-function suggestVoiceDownload(language, gender) {
-  const colors = {
-    reset: "\x1b[0m",
-    red: "\x1b[31m",
-    yellow: "\x1b[33m",
-    cyan: "\x1b[36m",
-    bright: "\x1b[1m",
-  };
-
-  console.error(
-    `${colors.red}❌ Missing voice files for ${language}/${gender}${colors.reset}`
-  );
-  console.error(
-    `${colors.yellow}💡 Download voice models (both .onnx and .json files) by running:${colors.reset}`
-  );
-  console.error(`${colors.cyan}   npm run download-voices${colors.reset}`);
-  console.error(
-    `${colors.yellow}Or force re-download all voices:${colors.reset}`
-  );
-  console.error(
-    `${colors.cyan}   npm run download-voices:force${colors.reset}`
-  );
-}
-
-// ---------- TEXT HELPERS ----------
+// Keep existing helper functions...
 function styleNote(style, customStyle) {
   const map = {
     friendly: "Warm, welcoming, upbeat.",
@@ -148,62 +123,7 @@ function postprocessStyle(text, style) {
   return t;
 }
 
-// ---------- SYNTHESIS ----------
-function synthesizeWithPiper({
-  text,
-  language,
-  gender,
-  outPath,
-  length_scale = 1.0,
-  noise_scale = 0.5,
-  noise_w = 0.5,
-  sentence_silence = 0.25,
-  speaker = null,
-  extra_args = [],
-}) {
-  const voicePath = VOICES[language?.toLowerCase()]?.[gender?.toLowerCase()];
-  const jsonPath = voicePath + ".json";
-
-  if (!voicePath || !fs.existsSync(voicePath) || !fs.existsSync(jsonPath)) {
-    suggestVoiceDownload(language, gender);
-    const missing = [];
-    if (!fs.existsSync(voicePath)) missing.push(".onnx model");
-    if (!fs.existsSync(jsonPath)) missing.push(".json config");
-
-    throw new Error(
-      `Missing voice files for language='${language}' gender='${gender}': ${missing.join(
-        " and "
-      )}\n` + `Expected: ${voicePath} and ${jsonPath}`
-    );
-  }
-
-  const args = [
-    "-m",
-    voicePath,
-    "-f",
-    outPath,
-    "-q",
-    "--length_scale",
-    String(length_scale),
-    "--noise_scale",
-    String(noise_scale),
-    "--noise_w",
-    String(noise_w),
-    "--sentence_silence",
-    String(sentence_silence),
-  ];
-  if (speaker != null) args.push("--speaker", String(speaker));
-  if (extra_args?.length) args.push(...extra_args.map(String));
-  args.push("--", text);
-
-  const proc = spawnSync(PIPER_BIN, args, { encoding: "utf-8" });
-  if (proc.status !== 0) {
-    throw new Error(`Piper error: ${proc.stderr || proc.stdout}`);
-  }
-  return outPath;
-}
-
-// ---------- MASTERING ----------
+// Keep existing mastering functions...
 function masterWav(inPath, outPath) {
   const af = [
     "loudnorm=I=-16:TP=-1.5:LRA=11",
@@ -251,7 +171,6 @@ function exportVariants(wavPath, formats = []) {
   return outputs;
 }
 
-// ---------- PRESETS ----------
 function stylePresets(style = "") {
   const s = style.toLowerCase();
   if (s === "urgent")
@@ -283,18 +202,11 @@ function stylePresets(style = "") {
   };
 }
 
-// ---------- NEW EXPORTS ----------
-
-/**
- * Check which voice models are available
- */
+// ---------- MAIN EXPORTS ----------
 export function getVoiceStatus() {
   return checkVoiceAvailability();
 }
 
-/**
- * Part 1: return the announcement text only.
- */
 export async function generateAnnouncementText(
   userText,
   { language, style, customStyle = null } = {}
@@ -308,10 +220,7 @@ export async function generateAnnouncementText(
   return postprocessStyle(draft, style);
 }
 
-/**
- * Part 2: take (possibly edited) text and make audio.
- * - DOES NOT call OpenAI.
- */
+// Updated makeAnnouncement to use bundled Piper
 export function makeAnnouncement(
   text,
   {
@@ -320,7 +229,7 @@ export function makeAnnouncement(
     style = "formal",
     master = true,
     exportFormats = null,
-    keepWav = false, // NEW
+    keepWav = false,
   } = {}
 ) {
   // Check if voice is available before processing
@@ -342,7 +251,8 @@ export function makeAnnouncement(
 
   const preset = stylePresets(style);
 
-  synthesizeWithPiper({
+  // Use bundled Piper binary instead of system Piper
+  synthesizeWithBundledPiper({
     text: finalText,
     language,
     gender,
@@ -363,12 +273,10 @@ export function makeAnnouncement(
   if (exportFormats?.length) {
     extras = exportVariants(mainAudio, exportFormats);
 
-    // If you don't want to keep any WAV around:
     if (!keepWav && fs.existsSync(mainAudio)) {
       try {
         fs.unlinkSync(mainAudio);
       } catch {}
-      // Optionally, point mainAudio at the first exported format
       const firstFmt = exportFormats[0].toLowerCase();
       if (extras[firstFmt]) mainAudio = extras[firstFmt];
     }
