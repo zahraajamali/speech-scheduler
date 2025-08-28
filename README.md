@@ -261,10 +261,10 @@ const result = makeAnnouncement(customText, {
 ```bash
 # Required
 OPENAI_API_KEY=your_openai_api_key_here
+PIPER_BIN=/path/to/piper           # Custom Piper binary path
 
 # Optional
 VOICES_DIR=/path/to/voices          # Custom voices directory
-PIPER_BIN=/path/to/piper           # Custom Piper binary path
 SKIP_VOICE_DOWNLOAD=true           # Skip automatic voice download
 ```
 
