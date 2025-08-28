@@ -52,9 +52,64 @@ npm install piper-announce
 You'll need these tools installed:
 
 - **Node.js** 16+
-- **Piper TTS** - Install from [rhasspy/piper](https://github.com/rhasspy/piper)
+- **Piper TTS** - Install using pip: `pip install piper-tts`
 - **FFmpeg** - For audio processing and format conversion
 - **OpenAI API Key** - Set as `OPENAI_API_KEY` environment variable
+
+#### Installing Piper TTS
+
+The easiest way to install Piper TTS is using pip. This library uses the python package from [piper](https://github.com/OHF-Voice/piper1-gpl).
+
+```bash
+pip install piper-tts
+```
+
+After installation, find the piper binary location:
+
+**macOS:**
+
+```bash
+which piper
+# Typical path: /opt/homebrew/bin/piper (Homebrew) or /usr/local/bin/piper
+```
+
+**Linux:**
+
+```bash
+which piper
+# Typical paths: ~/.local/bin/piper or /usr/local/bin/piper
+```
+
+**Windows:**
+
+```cmd
+where piper
+# Typical path: C:\Python311\Scripts\piper.exe or similar
+```
+
+Add the path shown by the command above to your environment variables:
+
+**Method 1: Environment Variable**
+
+```bash
+export PIPER_BIN=/opt/homebrew/bin/piper
+```
+
+**Method 2: .env file**
+
+```bash
+# Create or edit your .env file
+PIPER_BIN=/opt/homebrew/bin/piper
+OPENAI_API_KEY=your_openai_api_key_here
+```
+
+**Method 3: Add to shell profile**
+
+```bash
+# Add to ~/.zshrc or ~/.bash_profile
+echo 'export PIPER_BIN=/opt/homebrew/bin/piper' >> ~/.zshrc
+source ~/.zshrc
+```
 
 ## Voice Model Management
 
@@ -125,55 +180,6 @@ if (missingVoices.length > 0) {
   console.log("Missing voices:", missingVoices);
 }
 ```
-
-<!-- ## Voice Management
-
-### Check Voice Status
-
-```bash
-npm run check-voices
-```
-
-This shows which voice models are available:
-
-```
-📊 Voice Model Status:
-═══════════════════════════════════════════════
-
-English (GB) (en):
-  Female: ✅ Available
-  Male: ✅ Available
-
-Spanish (ES) (es):
-  Female: ✅ Available
-  Male: ❌ Missing
-
-💡 To download missing voices:
-   npm run download-voices
-```
-
-### Manual Voice Downloads
-
-```bash
-# Download missing voices only
-npm run download-voices
-
-# Re-download all voices (force)
-npm run download-voices:force
-```
-
-### Skip Automatic Downloads
-
-Set environment variables to skip automatic downloads:
-
-```bash
-# Skip during CI/CD
-export CI=true
-
-# Skip manually
-export SKIP_VOICE_DOWNLOAD=true
-npm install piper-announce
-``` -->
 
 ## Usage
 
@@ -261,11 +267,11 @@ const result = makeAnnouncement(customText, {
 ```bash
 # Required
 OPENAI_API_KEY=your_openai_api_key_here
-PIPER_BIN=/path/to/piper           # Custom Piper binary path
+PIPER_BIN=/opt/homebrew/bin/piper    # Path to piper binary (from 'which piper')
 
 # Optional
-VOICES_DIR=/path/to/voices          # Custom voices directory
-SKIP_VOICE_DOWNLOAD=true           # Skip automatic voice download
+VOICES_DIR=/path/to/voices           # Custom voices directory
+SKIP_VOICE_DOWNLOAD=true            # Skip automatic voice download
 ```
 
 ### Supported Languages & Voices
@@ -343,6 +349,28 @@ npm run download-voices:force
 
 ## Troubleshooting
 
+### Piper Installation Issues
+
+**"Piper command not found"**
+
+1. Install Piper TTS using pip:
+
+   ```bash
+   pip install piper-tts
+   ```
+
+2. Find the installation path:
+
+   ```bash
+   which piper
+   ```
+
+3. Set the environment variable:
+   ```bash
+   export PIPER_BIN=/opt/homebrew/bin/piper
+   # or add to your .env file
+   ```
+
 ### Voice Download Issues
 
 If voice downloads fail during installation:
@@ -366,13 +394,6 @@ node examples/voice-status.js
 npm run download-voices
 ```
 
-**"Piper command not found"**
-
-```bash
-# Install Piper TTS first
-# See: https://github.com/rhasspy/piper
-```
-
 **"FFmpeg command not found"**
 
 ```bash
@@ -380,6 +401,14 @@ npm run download-voices
 # macOS: brew install ffmpeg
 # Ubuntu: sudo apt install ffmpeg
 # Windows: Download from https://ffmpeg.org
+```
+
+**Permission denied errors**
+
+If you get permission errors when running piper, make sure it's executable:
+
+```bash
+chmod +x $(which piper)
 ```
 
 ## Examples
@@ -403,6 +432,13 @@ Check the `examples/` directory:
 MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Changelog
+
+### v1.2.2
+
+- ✨ Simplified Piper TTS installation using pip
+- 📝 Updated documentation with pip installation instructions
+- 🔧 Enhanced environment variable configuration
+- 🛠️ Improved troubleshooting guide
 
 ### v1.2.0
 
